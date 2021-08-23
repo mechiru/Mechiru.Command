@@ -76,6 +76,17 @@ namespace Mechiru.Command.Tests
         public Uri? Uri { get; init; }
     }
 
+    sealed record Opt8
+    {
+        [Option(Default = typeof(ValueDefault))]
+        public string Value { get; init; }
+
+        private sealed class ValueDefault : IDefault
+        {
+            public object Default() => "default value";
+        }
+    }
+
     public sealed class Example
     {
         [Fact]
@@ -174,6 +185,13 @@ namespace Mechiru.Command.Tests
                 Guid = new Guid("1D381F5A-99D8-4F7E-9AFA-72C72AAFB555"),
                 Uri = new Uri("https://www.google.com")
             });
+        }
+
+        [Fact]
+        public void Opt8_Default()
+        {
+            var opt = new ArgumentParser().Parse<Opt8>(Array.Empty<string>());
+            Assert.Equal(opt, new Opt8 { Value = "default value" });
         }
     }
 }

@@ -93,8 +93,12 @@ namespace Mechiru.Command
             _ => throw new ArgumentException(null, nameof(arg))
         };
 
-        internal static object ParseArgDefault(Type type, ArgDefault arg) =>
-            arg.Value is string s && type != typeof(string) ? GetTypeParser(type)(s) : arg.Value;
+        internal static object ParseArgDefault(Type type, ArgDefault arg) => arg.Value switch
+        {
+            Type ty when typeof(IDefault).IsAssignableFrom(ty) => ((IDefault)Activator.CreateInstance(ty)!).Default(),
+            string value => GetTypeParser(type)(value),
+            var value => value
+        };
 
         internal static object ParseArgValueless(Type type, ArgValueless arg) =>
             type == typeof(bool) || type == typeof(bool?) ? true : throw new ArgumentException($"`ArgValueless` is supported only for the bool type: {type.FullName}");

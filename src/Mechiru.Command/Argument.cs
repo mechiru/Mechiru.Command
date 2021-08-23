@@ -4,6 +4,8 @@ using System.Reflection;
 
 namespace Mechiru.Command
 {
+    public interface IDefault { public object Default(); }
+
     internal interface IArg { }
     internal sealed record ArgDefault(object Value) : IArg;
     internal sealed record ArgValueless : IArg;
