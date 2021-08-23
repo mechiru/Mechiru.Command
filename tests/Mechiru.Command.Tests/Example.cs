@@ -79,10 +79,10 @@ namespace Mechiru.Command.Tests
 
     sealed record Opt8
     {
-        [Option(Default = typeof(ValueDefault))]
+        [Option(Default = typeof(DefaultValue))]
         public string Value { get; init; } = null!;
 
-        private sealed class ValueDefault : IDefault
+        private sealed class DefaultValue : IDefault
         {
             public object Default() => "default value";
         }
