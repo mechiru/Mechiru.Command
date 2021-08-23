@@ -19,5 +19,5 @@ jobs:
     - run: dotnet test --no-build --verbosity normal
     # publish
     - run: dotnet build --configuration Release --no-restore -p:Version=${GITHUB_REF/refs\/tags\/v/}
-    - run: dotnet pack src/Mechiru.Command --include-source --configuration Release --no-build --output nupkgs -p:PackageVersion=${GITHUB_REF/refs\/tags\/v/}
-    - run: dotnet nuget push nupkgs/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+    - run: dotnet pack src/Mechiru.Command --configuration Release --no-build --output nupkgs -p:PackageVersion=${GITHUB_REF/refs\/tags\/v/}
+    - run: dotnet nuget push nupkgs/*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
