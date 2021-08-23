@@ -11,5 +11,6 @@ namespace Mechiru.Command
         public object? Env { get; init; }
         public string? Help { get; init; }
         public object? Default { get; init; }
+        public Type? Parser { get; init; }
     }
 }

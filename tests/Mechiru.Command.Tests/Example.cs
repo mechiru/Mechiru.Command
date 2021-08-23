@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using Xunit;
 
 namespace Mechiru.Command.Tests
@@ -79,11 +80,22 @@ namespace Mechiru.Command.Tests
     sealed record Opt8
     {
         [Option(Default = typeof(ValueDefault))]
-        public string Value { get; init; }
+        public string Value { get; init; } = null!;
 
         private sealed class ValueDefault : IDefault
         {
             public object Default() => "default value";
+        }
+    }
+
+    sealed record Opt9
+    {
+        [Option(Parser = typeof(JsonArrayParser))]
+        public string[] Values { get; init; } = null!;
+
+        private sealed class JsonArrayParser : IParser
+        {
+            public object Parse(string s) => JsonSerializer.Deserialize<string[]>(s)!;
         }
     }
 
@@ -144,7 +156,7 @@ namespace Mechiru.Command.Tests
         }
 
         [Fact]
-        public void Opt5_Array_ByArguments()
+        public void Opt5_ByArguments()
         {
             var opt = new ArgumentParser().Parse<Opt5>(new[] { "--ints", "1", "2", "3" });
             Assert.True(opt.Ints.SequenceEqual(new[] { 1, 2, 3 }));
@@ -192,6 +204,19 @@ namespace Mechiru.Command.Tests
         {
             var opt = new ArgumentParser().Parse<Opt8>(Array.Empty<string>());
             Assert.Equal(opt, new Opt8 { Value = "default value" });
+        }
+
+        [Fact]
+        public void Opt9_ArrayParser()
+        {
+            var opt = new ArgumentParser().Parse<Opt9>(new[] { "--values", "[\"a\", \"b\", \"c\"]" });
+            Assert.True(opt.Values.SequenceEqual(new[] { "a", "b", "c" }));
+        }
+
+        [Fact]
+        public void Opt9_ArrayParserError()
+        {
+            Assert.Throws<ArgumentException>(() => new ArgumentParser().Parse<Opt9>(new[] { "--values", "[\"a\"]", "[\"b\"]" }));
         }
     }
 }

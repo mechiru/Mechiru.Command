@@ -79,43 +79,63 @@ namespace Mechiru.Command
             }
 
             foreach (var (spec, arg) in cmdArgs)
-                spec.Property.SetValue(instance, ParseArg(spec.Property.PropertyType, arg));
+                spec.Property.SetValue(instance, ParseArg(spec.Property.PropertyType, arg, spec.Option.Parser?.As<IParser>()));
 
             return instance;
         }
 
-        internal static object ParseArg(Type type, IArg arg) => arg switch
+        internal static object ParseArg(Type type, IArg arg, IParser? parser) => arg switch
         {
-            ArgDefault @default => ParseArgDefault(type, @default),
+            ArgDefault @default => ParseArgDefault(type, @default, parser),
             ArgValueless less => ParseArgValueless(type, less),
-            ArgValue value => ParseArgValue(type, value),
-            ArgArray array => ParseArgArray(type, array),
+            ArgValue value => ParseArgValue(type, value, parser),
+            ArgArray array => ParseArgArray(type, array, parser),
             _ => throw new ArgumentException(null, nameof(arg))
         };
 
-        internal static object ParseArgDefault(Type type, ArgDefault arg) => arg.Value switch
+        internal static object ParseArgDefault(Type type, ArgDefault arg, IParser? parser) => arg.Value switch
         {
-            Type ty when typeof(IDefault).IsAssignableFrom(ty) => ((IDefault)Activator.CreateInstance(ty)!).Default(),
-            string value => GetTypeParser(type)(value),
+            Type ty when ty.IsAssignableTo(typeof(IDefault)) => ty.As<IDefault>()!.Default(),
+            string value => parser is not null ? parser.Parse(value) : GetTypeParser(type)(value),
             var value => value
         };
 
         internal static object ParseArgValueless(Type type, ArgValueless arg) =>
             type == typeof(bool) || type == typeof(bool?) ? true : throw new ArgumentException($"`ArgValueless` is supported only for the bool type: {type.FullName}");
 
-        internal static object ParseArgValue(Type type, ArgValue arg) =>
-            type.IsArray ? ParseArgArrayValue(type, arg.Value!.Split(" ")) : GetTypeParser(type)(arg.Value);
+        internal static object ParseArgValue(Type type, ArgValue arg, IParser? parser) =>
+            type.IsArray
+                ? ParseArgArrayValue(type, arg.Value, parser)
+                : parser is not null ? parser.Parse(arg.Value) : GetTypeParser(type)(arg.Value);
 
-        internal static object ParseArgArray(Type type, ArgArray arg) => ParseArgArrayValue(type, arg.Value);
 
-        internal static object ParseArgArrayValue(Type type, IReadOnlyList<string> args)
+        internal static object ParseArgArray(Type type, ArgArray arg, IParser? parser) => ParseArgArrayValue(type, arg.Value, parser);
+
+        internal static object ParseArgArrayValue(Type type, object args, IParser? parser)
         {
             if (!type.IsArray) throw new ArgumentException(null, nameof(type));
-            var elemType = type.GetElementType()!;
-            var parser = GetTypeParser(elemType);
-            var array = Array.CreateInstance(elemType, args.Count);
-            for (int i = 0; i < args.Count; i++) array.SetValue(parser(args[i]), i);
-            return array;
+
+            if (args is string s)
+            {
+                if (parser is not null) return parser.Parse(s);
+                args = s.Split(" ");
+            }
+
+            if (args is IReadOnlyList<string> xs)
+            {
+                if (parser is not null)
+                {
+                    if (xs.Count != 1) throw new ArgumentException($"if custom parser is specified, only one argument is accepted: {xs.Count}");
+                    return parser.Parse(xs[0]);
+                }
+                var elemType = type.GetElementType()!;
+                var elemParser = GetTypeParser(elemType);
+                var array = Array.CreateInstance(elemType, xs.Count);
+                for (int i = 0; i < xs.Count; i++) array.SetValue(elemParser(xs[i]), i);
+                return array;
+            }
+
+            throw new ArgumentException(null, nameof(args));
         }
 
         internal static Func<string, object> GetTypeParser(Type type)
@@ -146,5 +166,10 @@ namespace Mechiru.Command
             var ctor = type.GetTypeInfo().GetConstructor(new[] { typeof(string) }) ?? throw new ArgumentException($"does not support the target type: `{type.FullName}`");
             return s => ctor.Invoke(new object?[] { s });
         }
+    }
+
+    internal static class TypeExt
+    {
+        public static T? As<T>(this Type self) => self.IsAssignableTo(typeof(T)) ? (T)Activator.CreateInstance(self)! : default;
     }
 }

@@ -5,6 +5,7 @@ using System.Reflection;
 namespace Mechiru.Command
 {
     public interface IDefault { public object Default(); }
+    public interface IParser { public object Parse(string s); }
 
     internal interface IArg { }
     internal sealed record ArgDefault(object Value) : IArg;
