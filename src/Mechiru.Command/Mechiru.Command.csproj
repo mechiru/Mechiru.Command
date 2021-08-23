@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Authors>mechiru</Authors>
+    <Description>This is the simplest command line argument parser.</Description>
+    <PackageProjectUrl>https://github.com/mechiru/Mechiru.Command</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mechiru/Mechiru.Command</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>commandline;argument;parser;</PackageTags>
   </PropertyGroup>
 
 </Project>
