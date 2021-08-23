@@ -13,15 +13,38 @@ namespace Mechiru.Command
         public T Parse<T>(IEnumerable<string> args)
         {
             var type = typeof(T);
-            var instance = Activator.CreateInstance<T>();
-            var specs = type.GetProperties()
-                .Select(prop => (prop, attr: prop.GetCustomAttribute(typeof(OptionAttribute)) as OptionAttribute))
-                .Where(prop => prop.attr is not null)
-                .Select(prop => new ArgSpec(prop.prop, prop.attr!))
-                .ToArray();
+            var props = type.GetProperties();
 
             // TODO: check specs(duplicate, etc...)?
 
+            var ctor = type.GetConstructor(props.Select(p => p.PropertyType).ToArray());
+            var param = ctor?.GetParameters().Select(p => (p.GetCustomAttribute(typeof(OptionAttribute)) as OptionAttribute)!);
+            if (ctor is not null && param is not null)
+            {
+                var specs = props.Zip(param).Select(ps => new ArgSpec(ps.First, ps.Second)).ToArray();
+                var cmdArgs = ParseInner(args, specs);
+                object[] ctorParams = cmdArgs.Select(arg => ParseArg(arg.Key.Property.PropertyType, arg.Value, arg.Key.Option.Parser?.As<IParser>())).ToArray();
+                return (T)ctor.Invoke(ctorParams);
+            }
+            else
+            {
+                var specs = props
+                    .Select(prop => (prop, attr: prop.GetCustomAttribute(typeof(OptionAttribute)) as OptionAttribute))
+                    .Where(prop => prop.attr is not null)
+                    .Select(prop => new ArgSpec(prop.prop, prop.attr!))
+                    .ToArray();
+
+                var cmdArgs = ParseInner(args, specs);
+
+                var instance = Activator.CreateInstance<T>();
+                foreach (var (spec, arg) in cmdArgs)
+                    spec.Property.SetValue(instance, ParseArg(spec.Property.PropertyType, arg, spec.Option.Parser?.As<IParser>()));
+                return instance;
+            }
+        }
+
+        internal Dictionary<ArgSpec, IArg> ParseInner(IEnumerable<string> args, ArgSpec[] specs)
+        {
             using var iter = args.GetEnumerator();
             var cmdArgs = new Dictionary<ArgSpec, IArg>();
 
@@ -78,10 +101,7 @@ namespace Mechiru.Command
                 if (cmdArg is not null) cmdArgs.Add(spec, cmdArg);
             }
 
-            foreach (var (spec, arg) in cmdArgs)
-                spec.Property.SetValue(instance, ParseArg(spec.Property.PropertyType, arg, spec.Option.Parser?.As<IParser>()));
-
-            return instance;
+            return cmdArgs;
         }
 
         internal static object ParseArg(Type type, IArg arg, IParser? parser) => arg switch

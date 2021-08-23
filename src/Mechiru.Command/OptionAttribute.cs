@@ -2,7 +2,7 @@ using System;
 
 namespace Mechiru.Command
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class OptionAttribute : Attribute
     {
         public bool Required { get; init; }

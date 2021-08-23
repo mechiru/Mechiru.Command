@@ -99,6 +99,11 @@ namespace Mechiru.Command.Tests
         }
     }
 
+    sealed record Opt10(
+        [Option] string Name,
+        [Option] int Age
+    );
+
     public sealed class Example
     {
         [Fact]
@@ -217,6 +222,13 @@ namespace Mechiru.Command.Tests
         public void Opt9_ArrayParserError()
         {
             Assert.Throws<ArgumentException>(() => new ArgumentParser().Parse<Opt9>(new[] { "--values", "[\"a\"]", "[\"b\"]" }));
+        }
+
+        [Fact]
+        public void Opt10_RecordShorthand()
+        {
+            var opt = new ArgumentParser().Parse<Opt10>(new[] { "--name", "hoge", "--age", "20" });
+            Assert.Equal(opt, new Opt10("hoge", 20));
         }
     }
 }
