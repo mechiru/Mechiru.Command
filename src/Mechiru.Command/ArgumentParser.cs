@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -37,13 +38,13 @@ namespace Mechiru.Command
                 var cmdArgs = ParseInner(args, specs);
 
                 var instance = Activator.CreateInstance<T>();
-                foreach (var (spec, arg) in cmdArgs)
-                    spec.Property.SetValue(instance, ParseArg(spec.Property.PropertyType, arg, spec.Option.Parser?.As<IParser>()));
+                foreach (var ((prop, opt, _, _), arg) in cmdArgs)
+                    prop.SetValue(instance, ParseArg(prop.PropertyType, arg, opt.Parser?.As<IParser>()));
                 return instance;
             }
         }
 
-        internal Dictionary<ArgSpec, IArg> ParseInner(IEnumerable<string> args, ArgSpec[] specs)
+        internal ReadOnlyDictionary<ArgSpec, IArg> ParseInner(IEnumerable<string> args, ArgSpec[] specs)
         {
             using var iter = args.GetEnumerator();
             var cmdArgs = new Dictionary<ArgSpec, IArg>();
@@ -101,7 +102,7 @@ namespace Mechiru.Command
                 if (cmdArg is not null) cmdArgs.Add(spec, cmdArg);
             }
 
-            return cmdArgs;
+            return new ReadOnlyDictionary<ArgSpec, IArg>(cmdArgs);
         }
 
         internal static object ParseArg(Type type, IArg arg, IParser? parser) => arg switch

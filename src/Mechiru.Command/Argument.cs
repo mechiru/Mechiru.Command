@@ -13,20 +13,14 @@ namespace Mechiru.Command
     internal sealed record ArgValue(string Value) : IArg;
     internal sealed record ArgArray(IReadOnlyList<string> Value) : IArg;
 
-    internal sealed record ArgSpec
+    internal sealed record ArgSpec(
+        PropertyInfo Property,
+        OptionAttribute Option,
+        string LowerName,
+        string UpperName
+    )
     {
-        public PropertyInfo Property { get; }
-        public OptionAttribute Option { get; }
-        public string LowerName { get; }
-        public string UpperName { get; }
-
-        public ArgSpec(PropertyInfo property, OptionAttribute option)
-        {
-            Property = property;
-            Option = option;
-            LowerName = Property.Name.ToLower();
-            UpperName = Property.Name.ToUpper();
-        }
+        public ArgSpec(PropertyInfo prop, OptionAttribute opt) : this(prop, opt, prop.Name.ToLower(), prop.Name.ToUpper()) { }
     }
 
     internal static class EnumerableArgSpecExt
