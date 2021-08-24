@@ -92,7 +92,7 @@ namespace Mechiru.Command
                 string? value = spec.Option.Env switch
                 {
                     null or false => null,
-                    true => Environment.GetEnvironmentVariable(spec.UpperName),
+                    true => Environment.GetEnvironmentVariable(spec.Option.Long?.Replace('-', '_').ToUpper() ?? spec.UpperName),
                     string name => Environment.GetEnvironmentVariable(name),
                     _ => throw new ArgumentException($"`Env` must be a value of type bool or string: `{spec.Option.Env.GetType().FullName}`")
                 };

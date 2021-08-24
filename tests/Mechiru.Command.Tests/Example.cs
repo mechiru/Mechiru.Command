@@ -27,6 +27,9 @@ namespace Mechiru.Command.Tests
 
         [Option(Required = true, Short = 'e', Long = "my-env", Env = "MY_ENV")]
         public string Env2 { get; init; } = null!;
+
+        [Option(Required = true, Long = "my-long-env3-param", Env = true)]
+        public string Env3 { get; init; } = null!;
     }
 
     sealed record Opt4
@@ -137,20 +140,27 @@ namespace Mechiru.Command.Tests
         public void Opt3_ByArguments()
         {
             Environment.SetEnvironmentVariable("ENV1", "env1-from-env-var");
-            var opt = new ArgumentParser().Parse<Opt3>(new[] { "--env1", "env1", "--my-env", "env2" });
-            Assert.Equal(opt, new Opt3 { Env1 = "env1", Env2 = "env2" });
+            var opt = new ArgumentParser().Parse<Opt3>(new[] { "--env1", "env1", "--my-env", "env2", "--my-long-env3-param", "env3" });
+            Assert.Equal(opt, new Opt3 { Env1 = "env1", Env2 = "env2", Env3 = "env3" });
             Environment.SetEnvironmentVariable("ENV1", null);
         }
 
         [Fact]
         public void Opt3_ByEnvironmentVariables()
         {
-            Environment.SetEnvironmentVariable("ENV1", "env1-from-env-var");
-            Environment.SetEnvironmentVariable("MY_ENV", "env2-from-env-var");
+            var env = new[]
+            {
+                ("ENV1", "env1-from-env-var"),
+                ("MY_ENV", "env2-from-env-var"),
+                ("MY_LONG_ENV3_PARAM", "env3-from-env-var")
+            };
+
+            foreach (var (name, value) in env) Environment.SetEnvironmentVariable(name, value);
+
             var opt = new ArgumentParser().Parse<Opt3>(Array.Empty<string>());
-            Assert.Equal(opt, new Opt3 { Env1 = "env1-from-env-var", Env2 = "env2-from-env-var" });
-            Environment.SetEnvironmentVariable("ENV1", null);
-            Environment.SetEnvironmentVariable("MY_ENV", null);
+            Assert.Equal(opt, new Opt3 { Env1 = "env1-from-env-var", Env2 = "env2-from-env-var", Env3 = "env3-from-env-var" });
+
+            foreach (var (name, _) in env) Environment.SetEnvironmentVariable(name, null);
         }
 
         [Fact]
