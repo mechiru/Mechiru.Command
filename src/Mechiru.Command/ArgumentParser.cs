@@ -24,7 +24,7 @@ namespace Mechiru.Command
             {
                 var specs = props.Zip(param).Select(ps => new ArgSpec(ps.First, ps.Second)).ToArray();
                 var cmdArgs = ParseInner(args, specs);
-                object[] ctorParams = cmdArgs.Select(arg => ParseArg(arg.Key.Property.PropertyType, arg.Value, arg.Key.Option.Parser?.As<IParser>())).ToArray();
+                object?[] ctorParams = cmdArgs.Select(arg => ParseArg(arg.Key.Property.PropertyType, arg.Value, arg.Key.Option.Parser?.As<IParser>())).ToArray();
                 return (T)ctor.Invoke(ctorParams);
             }
             else
@@ -97,7 +97,7 @@ namespace Mechiru.Command
                     _ => throw new ArgumentException($"`Env` must be a value of type bool or string: `{spec.Option.Env.GetType().FullName}`")
                 };
                 if (value is not null) cmdArg = new ArgValue(value);
-                else if (spec.Option.Default is not null) cmdArg = new ArgDefault(spec.Option.Default);
+                else if (spec.Option._hasDefault) cmdArg = new ArgDefault(spec.Option.Default);
                 else if (spec.Option.Required) throw new ArgumentException($"required option not specified: `{spec.Option.Long ?? spec.LowerName}`");
                 if (cmdArg is not null) cmdArgs.Add(spec, cmdArg);
             }
@@ -105,7 +105,7 @@ namespace Mechiru.Command
             return new ReadOnlyDictionary<ArgSpec, IArg>(cmdArgs);
         }
 
-        internal static object ParseArg(Type type, IArg arg, IParser? parser) => arg switch
+        internal static object? ParseArg(Type type, IArg arg, IParser? parser) => arg switch
         {
             ArgDefault @default => ParseArgDefault(type, @default, parser),
             ArgValueless less => ParseArgValueless(type, less),
@@ -114,7 +114,7 @@ namespace Mechiru.Command
             _ => throw new ArgumentException(null, nameof(arg))
         };
 
-        internal static object ParseArgDefault(Type type, ArgDefault arg, IParser? parser) => arg.Value switch
+        internal static object? ParseArgDefault(Type type, ArgDefault arg, IParser? parser) => arg.Value switch
         {
             Type ty when ty.IsAssignableTo(typeof(IDefault)) => ty.As<IDefault>()!.Default(),
             string value => parser is not null ? parser.Parse(value) : GetTypeParser(type)(value),

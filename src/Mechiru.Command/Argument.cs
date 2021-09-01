@@ -8,7 +8,7 @@ namespace Mechiru.Command
     public interface IParser { public object Parse(string s); }
 
     internal interface IArg { }
-    internal sealed record ArgDefault(object Value) : IArg;
+    internal sealed record ArgDefault(object? Value) : IArg;
     internal sealed record ArgValueless : IArg;
     internal sealed record ArgValue(string Value) : IArg;
     internal sealed record ArgArray(IReadOnlyList<string> Value) : IArg;

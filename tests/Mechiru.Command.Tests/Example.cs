@@ -107,6 +107,8 @@ namespace Mechiru.Command.Tests
         [Option] int Age
     );
 
+    sealed record Opt11([Option(Default = null)] Uri? Uri);
+
     public sealed class Example
     {
         [Fact]
@@ -239,6 +241,13 @@ namespace Mechiru.Command.Tests
         {
             var opt = new ArgumentParser().Parse<Opt10>(new[] { "--name", "hoge", "--age", "20" });
             Assert.Equal(opt, new Opt10("hoge", 20));
+        }
+
+        [Fact]
+        public void Opt11_Null()
+        {
+            var opt = new ArgumentParser().Parse<Opt11>(Array.Empty<string>());
+            Assert.Equal(opt, new Opt11(null));
         }
     }
 }
