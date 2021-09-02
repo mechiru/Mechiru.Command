@@ -99,6 +99,7 @@ namespace Mechiru.Command
                 if (value is not null) cmdArg = new ArgValue(value);
                 else if (spec.Option._hasDefault) cmdArg = new ArgDefault(spec.Option.Default);
                 else if (spec.Option.Required) throw new ArgumentException($"required option not specified: `{spec.Option.Long ?? spec.LowerName}`");
+                else if (spec.Property.PropertyType.IsClass) cmdArg = new ArgDefault(null);
                 if (cmdArg is not null) cmdArgs.Add(spec, cmdArg);
             }
 
