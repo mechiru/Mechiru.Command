@@ -109,7 +109,10 @@ namespace Mechiru.Command.Tests
 
     sealed record Opt11([Option(Default = null)] Uri? Uri);
 
-    sealed record Opt12([Option] Uri? Uri);
+    sealed record Opt12(
+        [Option] Uri? Uri,
+        [Option] int? Int
+    );
 
     public sealed class Example
     {
@@ -256,7 +259,7 @@ namespace Mechiru.Command.Tests
         public void Opt12_Null()
         {
             var opt = new ArgumentParser().Parse<Opt12>(Array.Empty<string>());
-            Assert.Equal(opt, new Opt12(null));
+            Assert.Equal(opt, new Opt12(null, null));
         }
     }
 }
