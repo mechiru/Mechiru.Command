@@ -27,7 +27,7 @@ Opt { Foo = hello, Bar = True }
 
 ### Notice
 You can also use the standard argument parser instead of relying on a third party library.<br>
-Check [the documentation](https://docs.microsoft.com/en-us/archive/msdn-magazine/2019/march/net-parse-the-command-line-with-system-commandline) for details.
+Check [this documentation](https://docs.microsoft.com/en-us/archive/msdn-magazine/2019/march/net-parse-the-command-line-with-system-commandline) for details.
 
 
 ### Features:
