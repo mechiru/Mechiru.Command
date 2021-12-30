@@ -1,6 +1,7 @@
 # Mechiru.Command
 
 [![ci](https://github.com/mechiru/Mechiru.Command/workflows/ci/badge.svg)](https://github.com/mechiru/Mechiru.Command/actions?query=workflow:ci)
+[![pub](https://github.com/mechiru/Mechiru.Command/workflows/pub/badge.svg)](https://github.com/mechiru/Mechiru.Command/actions?query=workflow:pub)
 [![nuget](https://img.shields.io/nuget/v/Mechiru.Command.svg)](https://www.nuget.org/packages/Mechiru.Command/)
 
 Mechiru.Command is the simplest command line argument parser.<br>
